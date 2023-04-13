@@ -1,0 +1,1 @@
+(()=>{(new Image).src="./sprites.png";var e=document.getElementById("baseImage");null!=e&&(e.style.background="red")})();
