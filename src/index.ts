@@ -181,11 +181,21 @@ function checkCanvasArea(cords: number[] , operativeOne: number[], operativeTwo:
 
 }
 
+function undoPrototype(){
+    console.log(editsList)
+    globalCollectionCanvas = editsList[0]
+    commitBackgroundFromCollection()
+}
+
+function commitBackgroundFromCollection(){
+    let secondCanvasPage = document.getElementById("canvasCollections")
+}
+
 function commitChangingBackground(){
-    editsList.push(globalCollectionCanvas)
+    console.log("COMMITING")
 
     //popup
-    
+    document.getElementById("undoList").innerHTML = "Moves to undo: " +  (editsList.length - 1)
 
     globalCollectionCanvas.rawArray.map((r) => {
         r.map((c) => {
@@ -239,42 +249,48 @@ function initCanvas(x: number, y: number){
 
     editsList.push(collection)
 
+    let undoDivButton = document.getElementById("undoListButton")
+    undoDivButton.addEventListener('click', (e) => {
+        undoPrototype()
+    })
+
+    document.addEventListener('keydown', (key) => {
+        //console.log(key)
+        if([224, 17].includes(Number(key.keyCode))){
+            //doznaczanie/odznaczanie
+            advancedSelection = true
+        }
+    })
+
+    document.addEventListener("keydown", (key) => {
+        if(key.keyCode == 46){
+
+            operativeFieldsContents = []
+            globalCollectionCanvas.rawArray.map((c) => {
+                c.map((e) => {
+                    if(e.isSelected){
+                        e.setBaseLook()
+                    }
+                })
+            })
+        }
+    })
+
+    document.addEventListener("keyup", (key) => {
+        if([224, 17].includes(key.keyCode)){
+            //doznaczanie/odznaczanie
+            advancedSelection = false
+            console.log("ended selection mode")
+        }
+    })
+
+
     globalCollectionCanvas = collection
     let secondCanvasPage = document.getElementById("canvasCollections");
     collection.rawArray.map((e, i) => {
         e.map((canvas, j) => {
             canvas.setBaseLook();
             secondCanvasPage.appendChild(canvas.element);
-
-            document.addEventListener('keydown', (key) => {
-                //console.log(key)
-                if([224, 17].includes(Number(key.keyCode))){
-                    //doznaczanie/odznaczanie
-                    advancedSelection = true
-                }
-            })
-
-            document.addEventListener("keydown", (key) => {
-                if(key.keyCode == 46){
-
-                    operativeFieldsContents = []
-                    globalCollectionCanvas.rawArray.map((c) => {
-                        c.map((e) => {
-                            if(e.isSelected){
-                                e.setBaseLook()
-                            }
-                        })
-                    })
-                }
-            })
-
-            document.addEventListener("keyup", (key) => {
-                if([224, 17].includes(key.keyCode)){
-                    //doznaczanie/odznaczanie
-                    advancedSelection = false
-                    console.log("ended selection mode")
-                }
-            })
 
             canvas.element.addEventListener('mousedown', (ev) => {
                 //starting to drag dn
@@ -298,6 +314,8 @@ function initCanvas(x: number, y: number){
             canvas.element.addEventListener('click', (ev) => {
                 canvas.setBackground(imgageSliceData);
             })
+
+          
         })
     })
 
