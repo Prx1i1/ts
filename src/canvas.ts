@@ -5,6 +5,7 @@ class Canvas {
     x : number;
     y : number;
 
+    bgimage : number[] = [];
 
     constructor(x : number, y : number, totalx : number, totaly : number){
 
@@ -38,6 +39,8 @@ class Canvas {
     }
 
     public setBackground(tokens : DOMTokenList | string[]){
+        this.bgimage = []
+        this.bgimage.push(Number(tokens[0]), Number(tokens[1]))
         let backgroundimage = new Image();
         backgroundimage.src = "./sprites.png"
         let canvasElement = this.element as HTMLCanvasElement

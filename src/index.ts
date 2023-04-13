@@ -13,7 +13,8 @@ let operativeFieldsContents: number[][] = []
 
 let globalCollectionCanvas: CanvasCollection;
 
-let editsList : CanvasCollection[] = [];
+let editsList : number[][][][] = [];
+let editIndice: number = -1; //theoretically its clean
 
 image.src = "./sprites.png"
 
@@ -181,18 +182,97 @@ function checkCanvasArea(cords: number[] , operativeOne: number[], operativeTwo:
 
 }
 
-function undoPrototype(){
-    console.log(editsList)
-    globalCollectionCanvas = editsList[0]
-    commitBackgroundFromCollection()
+function undoPrototype(x: number | 32, y: number | 20, isRedo: boolean){
+    console.log("edits", editsList)
+    
+    //remake the whole canvas
+
+    let collection: CanvasCollection = new CanvasCollection(x, y, false);
+
+    if(isRedo){
+        editIndice += 2
+    }
+
+    globalCollectionCanvas = collection
+    let secondCanvasPage = document.getElementById("canvasCollections");
+    secondCanvasPage.innerHTML = "";
+    collection.rawArray.map((e, i) => {
+        e.map((canvas, j) => {
+            canvas.setBaseLook();
+
+
+            let lastEdit : number[][][] = editsList[editIndice];
+
+            console.log("REDO CHECK", editsList.length, editIndice)
+
+            // console.log(lastEdit)
+            try{
+                if(lastEdit[i][j].length === 0){
+                    canvas.setBaseLook()
+                }else{
+                    canvas.setBackground([String(lastEdit[i][j][0]), String(lastEdit[i][j][1])])
+                }
+            }catch{
+                lastEdit = editsList[editsList.length - 1];
+                if(editsList.length == 0){
+                    editIndice --; //reset
+                }else{
+                console.log("ER", lastEdit)
+                if(lastEdit[i][j].length === 0){
+                    canvas.setBaseLook()
+                }else{
+                    canvas.setBackground([String(lastEdit[i][j][0]), String(lastEdit[i][j][1])])
+                }}
+
+            }
+            secondCanvasPage.appendChild(canvas.element);
+
+            canvas.element.addEventListener('mousedown', (ev) => {
+                //starting to drag dn
+                console.log("dragging")
+                operativeStart = canvas.element.classList
+                if (canvas.element.classList.length == 1){
+                    operativeStart = [canvas.element.classList[0], canvas.element.classList[0]]
+                }
+            })
+
+            canvas.element.addEventListener("mouseup", (ev) => {
+                console.log("release")
+                operativeEnd = canvas.element.classList
+                if (canvas.element.classList.length == 1){
+                    operativeEnd = [canvas.element.classList[0], canvas.element.classList[0]]
+                }
+                //trigger of function
+                changeBackgroundDrag(collection) // changing dragged field
+            })
+
+            canvas.element.addEventListener('click', (ev) => {
+                canvas.setBackground(imgageSliceData);
+            })
+
+          
+        })
+    })
+
+    //clean array of editList
+    editIndice--;
+
+
+
+
 }
 
-function commitBackgroundFromCollection(){
-    let secondCanvasPage = document.getElementById("canvasCollections")
-}
+
 
 function commitChangingBackground(){
     console.log("COMMITING")
+
+    console.log(operativeFieldsContents)
+
+    editIndice += 1; //number last before current
+
+    editsList.splice(editIndice + 1)
+
 
     //popup
     document.getElementById("undoList").innerHTML = "Moves to undo: " +  (editsList.length - 1)
@@ -216,6 +296,21 @@ function commitChangingBackground(){
         })
     })
     operativeFieldsContents = []
+
+
+     //save move
+     let arrayEdits : number[][][] = []
+     globalCollectionCanvas.rawArray.map((row) => {
+         let temp: number[][] = []
+         row.map((element) => {
+             temp.push(element.bgimage)
+         })
+         arrayEdits.push(temp)
+     })
+ 
+     editsList.push(arrayEdits)
+ 
+     console.log(arrayEdits)
 }
 
 function changeBackgroundDrag(coll: CanvasCollection){
@@ -236,8 +331,6 @@ function changeBackgroundDrag(coll: CanvasCollection){
             }
             checkCanvasArea(cords as number[], operativeOne as number[], operativeTwo as number[], advancedSelection)
 
-           
-
 
         })
     })
@@ -247,12 +340,29 @@ function changeBackgroundDrag(coll: CanvasCollection){
 function initCanvas(x: number, y: number){
     let collection: CanvasCollection = new CanvasCollection(x, y, false);
 
-    editsList.push(collection)
-
     let undoDivButton = document.getElementById("undoListButton")
     undoDivButton.addEventListener('click', (e) => {
-        undoPrototype()
+        undoPrototype(32, 20, false)
     })
+
+    
+    var map: any = {}; // You could also use an array
+    onkeydown = onkeyup = function(e){
+ 
+        map[e.keyCode] = e.type == 'keydown';
+        /* insert conditional here */
+        console.log(map)
+        if(map[17] & map[90]){
+            console.log("CTRL")
+                console.log("Z")
+                undoPrototype(32, 20, false)
+        }
+        if(map[17] & map[89]){
+            console.log("CTRL")
+                console.log("Y")
+                undoPrototype(32, 20, true)
+        }
+    }
 
     document.addEventListener('keydown', (key) => {
         //console.log(key)
@@ -318,5 +428,16 @@ function initCanvas(x: number, y: number){
           
         })
     })
+
+    let arrayEdits : number[][][] = []
+    globalCollectionCanvas.rawArray.map((row) => {
+        let temp: number[][] = []
+        row.map((element) => {
+            temp.push([])
+        })
+        arrayEdits.push(temp)
+    })
+
+    editsList.push(arrayEdits)
 
 }
